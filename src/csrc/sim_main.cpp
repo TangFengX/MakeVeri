@@ -16,7 +16,8 @@ vluint64_t half_clk_T = HALF_CLK_CYCLE;
 int main(int argc, char **argv)
 {
     VERILATOR_INIT(argc, argv, true);
-    VERILATOR_MAIN_LOOP();
+    VERILATOR_MAIN_INITIAL_BLOCK();
+    VERILATOR_MAIN_FOREVER_BLOCK();
 end:
     VERILATOR_FREE();
 

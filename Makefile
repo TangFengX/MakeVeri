@@ -1,6 +1,6 @@
 TOPNAME = top
 VERILATOR = verilator
-WAVEFROM_NAME = wavefrom.fst
+WAVEFROM_NAME = wavefrom$(shell date +%Y%m%d_%H%M%S).fst
 PWD=$(shell pwd)
 BUILD=$(PWD)/build
 
@@ -26,7 +26,7 @@ VERILOG_FILES := $(wildcard $(VSRC)/*.v $(VSRC)/*.sv)
 CPP_FILES := $(wildcard $(CSRC)/*.c $(CSRC)/*.cc $(CSRC)/*.cpp)
 
 
-WAVEFROM = $(BUILD)/wavefrom
+WAVEFROM = $(PWD)/wavefrom
 WAVEFROM_FILE = $(WAVEFROM)/$(WAVEFROM_NAME)
 
 #硬件配置
@@ -66,20 +66,26 @@ $(TARGET): $(OBJ_DIR)/V$(TOPNAME).mk $(CSRC) $(wildcard $(INCLUDE)/*.h) $(VSRC)
 	@make -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(FLAGS)" $(MAKE_FLAGS)
 	@mv $(OBJ_DIR)/V$(TOPNAME) $(BIN)
 
+
+LATEST_FST := $(shell ls $(WAVEFROM)/*.fst 2>/dev/null | sort | tail -n 1)
 sim:$(TARGET)
 	@echo "show wavefrom in gtkwave"
-	@mkdir -p $(WAVEFROM)
-	@$(BIN)/V$(TOPNAME)
-	@gtkwave $(WAVEFROM_FILE)
+	@gtkwave $(LATEST_FST)
 
-run:sim
+run:$(TARGET)
+	@mkdir -p $(WAVEFROM)
+	@$(TARGET)
+	@fst2vcd $(LATEST_FST) > $(patsubst %.fst, %.vcd, $(LATEST_FST))
 	
 
 
 clean:
 	@rm $(BUILD) -rf
 	@rm $(BIN) -rf 
+cleanwave:
+	@rm $(WAVEFROM) -rf
 
+cleanall:clean cleanwave
 lint:
 	@$(VERILATOR) --lint-only -Wall $(VERILOG_FILES)
 tb:$(SIM_CONFIG_FILE)

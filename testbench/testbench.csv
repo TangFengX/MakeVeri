@@ -1,7 +1,11 @@
-Time(ps),Pin,Value,Note,max stimulate time,20
-0,a,0,,half clock cycle,2
-,,,,enable clock input,0
-5,a,1,,clock pin name,clk
-10,a,0,,,
-,,,,,
-15,a,1,,,
+INITIAL,Time(ps),Pin,Value,Note,FOREVER,Time(ps),Pin,Value,Note,Configuration,Value,Note
+,0,a,1,,,0,a,1,,enable limit time stimulation,1,
+,0,b,1,,,0,b,1,,max stimulate time,20,enable limit time stimulation =1
+,,,,,,1,a,0,,enable clock input,1,
+,,,,,,2,b,0,,half clock cycle,1,enable clock input=1
+,,,,,,3,a,1,,clock pin name,clk,enable clock input=1
+,,,,,,,,,,enable INITIAL block,1,
+,,,,,,,,,,INITIAL block max stimulate time,1,INITIAL block max stimulate time=1
+,,,,,,,,,,enable FOREVER block,1,
+,,,,,,,,,,FOREVER block cycle,4,FOREVER block cycle=1
+,,,,,,,,,,enable wavefrom acquisition,1,

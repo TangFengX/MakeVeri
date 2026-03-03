@@ -73,7 +73,6 @@ make
 
 | 命令 | 功能说明 | 使用场景 |
 |------|----------|----------|
-| `make sim` | 运行仿真并在 gtkwave 中显示波形 | 需要查看波形分析时序时 |
 | `make tb` | 从 `testbench.csv` 生成 `sim_config.h` 配置文件 | 修改测试激励后更新配置 |
 
 ## 清理命令
@@ -91,17 +90,7 @@ make
 | `make lint` | 使用 Verilator 分析 Verilog 代码语法 | 检查代码规范性和潜在问题 |
 | `make bind` | 生成引脚绑定文件 `auto_bind.cpp` | 修改引脚约束文件后更新绑定 |
 
-## 环境检查命令
 
-| 命令 | 功能说明 | 使用场景 |
-|------|----------|----------|
-| `make check` | 检查所有环境依赖 | 首次使用或环境配置后验证 |
-| `make check_commands` | 检查必要的命令行工具 | 验证 gcc、g++、python 等工具 |
-| `make check_libs` | 检查 SDL2 头文件 | 验证图形界面依赖 |
-| `make check_python_modules` | 检查 Python 模块 | 验证脚本运行环境 |
-| `make check_libraries` | 检查动态链接库 | 验证库文件链接 |
-| `make check_verilator` | 检查 Verilator 版本和功能 | 验证仿真工具 |
-| `make check_all` | 执行所有检查并汇总结果 | 全面环境验证 |
 
 
 

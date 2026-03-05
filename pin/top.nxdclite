@@ -2,10 +2,11 @@ top=top
 
 
 
-ledr (LD{15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0})
+ledr (LD{15 14-4 3 2 1 0})
 
-sw (SW7-0)
+sw (SW{7-0})
 
-btn (BTN{LU C DR})
+btn (BTN{L U C D R})
 
-@0-7 seg@ (SEG[@+0]A-G, DEC@P)
+@0-7 seg@ (SEG[@+0]{A-G}, DEC@P)
+

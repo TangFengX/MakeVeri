@@ -12,7 +12,7 @@
 #define INITIAL_BLOCK_MAX_STIMULATE_TIME 20
 #define ENABLE_FOREVER_BLOCK 1
 #define FOREVER_BLOCK_CYCLE 20
-#define ENABLE_WAVEFROM_ACQUISITION 0
+#define ENABLE_WAVEFROM_ACQUISITION 1
 
 #define VERILATOR_MAIN_INITIAL_BLOCK()                                   \
     do                                                                   \

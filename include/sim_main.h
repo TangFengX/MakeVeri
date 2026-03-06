@@ -36,7 +36,8 @@
     tfp->close();        \
     delete tfp;          \
     delete top;          \
-    delete contextp
+    delete contextp;    \
+    nvboard_quit();
 #if ENABLE_LIMIT_TIME_STIMULATION == 1
 #define VERILATOR_VALID_STIMULATION_RANGE() !contextp->gotFinish() && T < MAX_TIME_SIM
 #else

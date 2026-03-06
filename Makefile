@@ -59,13 +59,13 @@ MAKE_FLAGS+= -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(CFLAGS)"  LD
 .PHONY: all toc sim clean cleanlib tb bind 
 
 
-$(EXECUTABLE): $(OBJ_DIR)/V$(TOPNAME).mk $(SIM_CONFIG_FILE) $(PIN_BIND_CONFIG_CPP_FILE)  $(NVBOARD_ARCHIVE) $(CSRC) $(VSRC) $(wildcard $(INCLUDE)/*.h)#build exe with auto-generated .mk file
+$(EXECUTABLE): $(OBJ_DIR)/V$(TOPNAME).mk $(SIM_CONFIG_FILE) $(PIN_BIND_CONFIG_CPP_FILE)  $(NVBOARD_ARCHIVE) $(CPP_FILES) $(wildcard $(INCLUDE)/*.h)#build exe with auto-generated .mk file
 	@mkdir -p $(BIN)
 	@make $(MAKE_FLAGS)
 	@mv $(OBJ_DIR)/V$(TOPNAME) $(BIN)
 
 toc:$(OBJ_DIR)/V$(TOPNAME).mk
-$(OBJ_DIR)/V$(TOPNAME).mk : $(VERILOG_FILES)
+$(OBJ_DIR)/V$(TOPNAME).mk : $(VERILOG_FILES) $(VERILOG_FILES)
 	@mkdir -p $(BUILD)
 	@mkdir -p $(OBJ_DIR)
 	@$(VERILATOR) $(VERILATOR_FLAGS) $(VERILOG_FILES) $(CPP_FILES)
@@ -99,7 +99,7 @@ $(PIN_BIND_CONFIG_CPP_FILE):$(PIN_BIND_CONFIG_FILE)
 
 run:$(EXECUTABLE)
 	@mkdir -p $(WAVEFROM)
-	@$(BIN)/V$(TOPNAME)
+	$(BIN)/V$(TOPNAME)
 
 
 genbind:$(shell pwd)/pin/top.nxdclite

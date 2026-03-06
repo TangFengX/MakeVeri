@@ -75,6 +75,8 @@ sim:$(TARGET)
 run:
 	@mkdir -p $(WAVEFROM)
 	@$(TARGET)
+
+vcd:
 	@LATEST_FST=$$(ls $(WAVEFROM)/*.fst 2>/dev/null | sort | tail -n 1); \
 	fst2vcd "$$LATEST_FST" > "$${LATEST_FST%.fst}.vcd" 2>/dev/null || true
 	

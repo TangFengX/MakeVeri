@@ -52,7 +52,7 @@ mk:$(TARGET)
 
 
 toc:$(OBJ_DIR)/V$(TOPNAME).mk
-$(OBJ_DIR)/V$(TOPNAME).mk: $(SIM_CONFIG_FILE)
+$(OBJ_DIR)/V$(TOPNAME).mk: $(SIM_CONFIG_FILE) $(VERILOG_FILES)
 	@echo "verilog ----verilator----> cpp"
 	@rm  $(OBJ_DIR)/* -rf
 	@echo "#include \"V$(TOPNAME).h\"" > $(INCLUDE)/top_module_name.h
@@ -60,7 +60,7 @@ $(OBJ_DIR)/V$(TOPNAME).mk: $(SIM_CONFIG_FILE)
 	@mkdir -p $(OBJ_DIR)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) $(VERILOG_FILES) $(CPP_FILES)
 
-$(TARGET): $(OBJ_DIR)/V$(TOPNAME).mk $(CSRC) $(wildcard $(INCLUDE)/*.h) $(VSRC)
+$(TARGET): $(OBJ_DIR)/V$(TOPNAME).mk  $(wildcard $(INCLUDE)/*.h) $(VERILOG_FILES) $(CPP_FILES)
 	@echo "cpp ----g++----> exe"
 	@mkdir -p $(BIN)
 	@make -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(FLAGS)" $(MAKE_FLAGS)

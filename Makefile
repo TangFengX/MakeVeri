@@ -1,90 +1,120 @@
 TOPNAME = top
 VERILATOR = verilator
-WAVEFROM_NAME = wavefrom$(shell date +%Y%m%d_%H%M%S).fst
+TIMESTAMP = $(shell date +%Y%m%d_%H%M%S)
+
+b?=0
+
+
+
+
+
+
 PWD=$(shell pwd)
+NVBOARD_HOME=$(PWD)/nvboard
 BUILD=$(PWD)/build
-
-
-TESTBENCH=$(PWD)/testbench
-TESTBENCH_FILE=$(TESTBENCH)/testbench.csv
-SIM_CONFIG_FILE=$(INCLUDE)/sim_config.h
-TESTBENCH_TOOL=$(TESTBENCH)/csv2c.py
-TARGET=$(BIN)/V$(TOPNAME)
-
+PIN=$(PWD)/pin
 BIN=$(PWD)/bin
 CSRC=$(PWD)/src/csrc
 VSRC=$(PWD)/src/vsrc
-TOP_MODULE_FILE=$(if $(wildcard $(VSRC)/$(TOPNAME).v),$(VSRC)/$(TOPNAME).v,(if $(wildcard $(VSRC)/$(TOPNAME).sv),$(VSRC)/$(TOPNAME).sv,))
-
 OBJ_DIR=$(BUILD)/obj_dir
 INCLUDE = $(PWD)/include
+TESTBENCH=$(PWD)/testbench
+WAVEFROM = $(PWD)/wavefrom
 
-INCLUDES = $(INCLUDE) $(OBJ_DIR)
 
+
+TESTBENCH_FILE=$(TESTBENCH)/testbench.csv
+SIM_CONFIG_FILE=$(INCLUDE)/sim_config.h
+TESTBENCH_TOOL=$(TESTBENCH)/csv2c.py
+PIN_BIND_CONFIG_FILE=$(PIN)/top.nxdc
+WAVEFROM_FILE = $(WAVEFROM)/wavefrom_$(TIMESTAMP).fst
+AUTO_PIN_BIND_SCRIPT = $(NVBOARD_HOME)/scripts/auto_pin_bind.py
+PIN_BIND_CONFIG_CPP_FILE = $(CSRC)/auto_bind.cpp
+NVBOARD_MAKEFILE = $(NVBOARD_HOME)/scripts/nvboard.mk
+EXECUTABLE = $(BIN)/V$(TOPNAME)
+
+
+TOP_MODULE_FILE=$(if $(wildcard $(VSRC)/$(TOPNAME).v),$(VSRC)/$(TOPNAME).v,(if $(wildcard $(VSRC)/$(TOPNAME).sv),$(VSRC)/$(TOPNAME).sv,))
+
+
+ifeq ( $(b) , 1 )
+	INCLUDES = $(INCLUDE) $(OBJ_DIR) $(NVBOARD_HOME)/usr/include
+	include $(NVBOARD_HOME)/scripts/nvboard.mk
+	D_NVBOARD = -DNVBOARD
+	
+else
+	INCLUDES = $(INCLUDE) $(OBJ_DIR)
+endif
 
 VERILOG_FILES := $(wildcard $(VSRC)/*.v $(VSRC)/*.sv)
 CPP_FILES := $(wildcard $(CSRC)/*.c $(CSRC)/*.cc $(CSRC)/*.cpp)
 
 
-WAVEFROM = $(PWD)/wavefrom
-WAVEFROM_FILE = $(WAVEFROM)/$(WAVEFROM_NAME)
+
+all:$(EXECUTABLE)
+
+
+
+
+
+
+
 
 #硬件配置
 CORES=$(shell nproc)
 
-#verilator选项
-VERILATOR_CFLAGS += --trace-fst  
-VERILATOR_CFLAGS += --cc
-VERILATOR_CFLAGS += --top-module $(TOPNAME)
-VERILATOR_CFLAGS += --Mdir $(OBJ_DIR)
-VERILATOR_CFLAGS += --exe
+
+VERILATOR_FLAGS += --trace-fst  --cc --top-module $(TOPNAME) --Mdir $(OBJ_DIR) --exe
 
 
-#make选项
-MAKE_FLAGS+= -j $(CORES)
-FLAGS+= -DWAVEFILE="\\\"$(WAVEFROM_FILE)\\\""
-FLAGS+= -Wall
-FLAGS+= -O2
-FLAGS+= $(addprefix -I ,$(INCLUDES))
 
 
-mk:$(TARGET)
+CFLAGS+= -DWAVEFILE="\\\"$(WAVEFROM_FILE)\\\"" $(D_NVBOARD) -Wall -O2 $(addprefix -I ,$(INCLUDES))
+LDFLAGS += $(NVBOARD_ARCHIVE) -lSDL2 -lSDL2_image -lSDL2_ttf -lz
+MAKE_FLAGS+= -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(CFLAGS)"  LDLIBS="$(LDFLAGS)" -j $(CORES)
 
 
-toc:$(OBJ_DIR)/V$(TOPNAME).mk
-$(OBJ_DIR)/V$(TOPNAME).mk: $(SIM_CONFIG_FILE) $(VERILOG_FILES)
-	@echo "verilog ----verilator----> cpp"
-	@rm  $(OBJ_DIR)/* -rf
-	@echo "#include \"V$(TOPNAME).h\"" > $(INCLUDE)/top_module_name.h
-	@mkdir -p $(BUILD)
-	@mkdir -p $(OBJ_DIR)
-	@$(VERILATOR) $(VERILATOR_CFLAGS) $(VERILOG_FILES) $(CPP_FILES)
 
-$(TARGET): $(OBJ_DIR)/V$(TOPNAME).mk  $(wildcard $(INCLUDE)/*.h) $(VERILOG_FILES) $(CPP_FILES)
-	@echo "cpp ----g++----> exe"
+.PHONY: all toc sim clean cleanlib tb bind 
+
+
+$(EXECUTABLE): $(OBJ_DIR)/V$(TOPNAME).mk  $(CPP_FILES) $(wildcard $(INCLUDE)/*.h) $(NVBOARD_ARCHIVE)
 	@mkdir -p $(BIN)
-	@make -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(FLAGS)" $(MAKE_FLAGS)
+	@make $(MAKE_FLAGS)
 	@mv $(OBJ_DIR)/V$(TOPNAME) $(BIN)
 
+toc:$(OBJ_DIR)/V$(TOPNAME).mk
+$(OBJ_DIR)/V$(TOPNAME).mk : $(VERILOG_FILES) 
+	@mkdir -p $(BUILD)
+	@mkdir -p $(OBJ_DIR)
+	@$(VERILATOR) $(VERILATOR_FLAGS) $(VERILOG_FILES) $(CPP_FILES)
 
+
+
+
+
+	
 LATEST_FST := $(shell ls $(WAVEFROM)/*.fst 2>/dev/null | sort | tail -n 1)
-sim:$(TARGET)
-	@echo "show wavefrom in gtkwave"
+sim:$(EXECUTABLE)
 	@gtkwave $(LATEST_FST)
 
-run:
+run:$(EXECUTABLE)
 	@mkdir -p $(WAVEFROM)
-	@$(TARGET)
+	$(EXECUTABLE)
 
 vcd:
 	@LATEST_FST=$$(ls $(WAVEFROM)/*.fst 2>/dev/null | sort | tail -n 1); \
 	fst2vcd "$$LATEST_FST" > "$${LATEST_FST%.fst}.vcd" 2>/dev/null || true
-	
+
 
 
 clean:
 	@rm $(BUILD) -rf
 	@rm $(BIN) -rf 
+
+
+cleanlib:
+	@rm $(NVBOARD_BUILD_DIR) -rf
 cleanwave:
 	@rm $(WAVEFROM) -rf
 
@@ -92,12 +122,24 @@ cleanall:clean cleanwave
 
 lint:
 	@$(VERILATOR) --lint-only -Wall $(VERILOG_FILES)
+
+
 tb:$(SIM_CONFIG_FILE)
 
-$(SIM_CONFIG_FILE): $(TESTBENCH_FILE)
-	@python --version
-	@rm $(SIM_CONFIG_FILE) -f
+$(SIM_CONFIG_FILE): $(TESTBENCH_FILE) $(TESTBENCH_TOOL)
+	@rm $(SIM_CONFIG_FILE) -rf
 	@python $(TESTBENCH_TOOL) $(TESTBENCH_FILE) $(SIM_CONFIG_FILE)
+
+bind:$(PIN_BIND_CONFIG_CPP_FILE)
+$(PIN_BIND_CONFIG_CPP_FILE):$(PIN_BIND_CONFIG_FILE) $(shell pwd)/pin/top.nxdclite $(shell pwd)/pin/gen_tool.py $(shell pwd)/pin/pins
+	@touch $(PIN_BIND_CONFIG_CPP_FILE)
+	@python $(AUTO_PIN_BIND_SCRIPT) $(PIN_BIND_CONFIG_FILE) $(PIN_BIND_CONFIG_CPP_FILE)
+
+
+
+genbind:$(shell pwd)/pin/top.nxdclite
+	@python $(shell pwd)/pin/gen_tool.py
+
 
 
 

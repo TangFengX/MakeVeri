@@ -3,9 +3,10 @@
 #include "sim_config.h"
 #include <chrono>
 #include <thread>
-#define VERILATOR_INIT(argc, argv, trace_on) \
+
+#define VERILATOR_INIT(argc, argv) \
     contextp->commandArgs(argc, argv);       \
-    Verilated::traceEverOn(trace_on);        \
+    Verilated::traceEverOn(true);        \
     top->trace(tfp, 99);                     \
     tfp->open(WAVEFILE);
 
@@ -34,7 +35,8 @@
 
 #define VERILATOR_EVAL_AND_DUMP()         \
     top->eval();                          \
-    NVBOARD_UPDATE;                       \
+    if (clk)                              \
+        NVBOARD_UPDATE;                   \
     do                                    \
     {                                     \
         if (!ENABLE_WAVEFROM_ACQUISITION) \
@@ -44,9 +46,9 @@
         tfp->dump(contextp->time());      \
     } while (0)
 
-#define VERILATOR_STEP() \
-    T++;                 \
-    NVBOARD_DELAY(DELAY_WHILE_RUNNING_NVBOARD);    \
+#define VERILATOR_STEP()                        \
+    T++;                                        \
+    NVBOARD_DELAY(DELAY_WHILE_RUNNING_NVBOARD); \
     contextp->timeInc(1)
 
 #define VERILATOR_FREE() \
@@ -54,7 +56,8 @@
     delete tfp;          \
     delete top;          \
     delete contextp;     \
-    NVBOARD_QUIT;
+    NVBOARD_QUIT;\
+    
 #if ENABLE_LIMIT_TIME_STIMULATION == 1
 #define VERILATOR_VALID_STIMULATION_RANGE() !contextp->gotFinish() && T < MAX_TIME_SIM
 #else
@@ -84,11 +87,11 @@
 #define VERILATOR_STEP_AND_EVAL_UNTIL(t) \
     do                                   \
     {                                    \
-        VERILATOR_END_CHECK();           \
         VERILATOR_TOGGLE_CLK();          \
         VERILATOR_CLK_INPUT(clk);        \
         VERILATOR_EVAL_AND_DUMP();       \
         VERILATOR_STEP();                \
+        VERILATOR_END_CHECK();           \
     } while (T < t)
 
 #if ENABLE_CLK_INPUT == 1

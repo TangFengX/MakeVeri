@@ -219,7 +219,6 @@ def generate_initial_block_code(events, config):
         for time in times:
             # STEP到当前时间
             if current_time != time:
-                lines.append(f"    NVBOARD_UPDATE;")
                 lines.append(f"    VERILATOR_STEP_AND_EVAL_UNTIL({time});")
                 current_time = time
             
@@ -231,10 +230,8 @@ def generate_initial_block_code(events, config):
     # 最后执行STEP到INITIAL_BLOCK_MAX_STIMULATE_TIME
     max_time = config.get('INITIAL_BLOCK_MAX_STIMULATE_TIME', '20')
     if 'current_time' in locals() and current_time != max_time:
-        lines.append(f"    NVBOARD_UPDATE;")
         lines.append(f"    VERILATOR_STEP_AND_EVAL_UNTIL(INITIAL_BLOCK_MAX_STIMULATE_TIME);")
     else:
-        lines.append(f"    NVBOARD_UPDATE;")
         lines.append(f"    VERILATOR_STEP_AND_EVAL_UNTIL(INITIAL_BLOCK_MAX_STIMULATE_TIME);")
     
     return lines
@@ -293,7 +290,6 @@ def generate_forever_block_code(events, config):
         for time in times:
             # STEP到当前时间
             if current_time != time:
-                lines.append(f"    NVBOARD_UPDATE;")
                 lines.append(f"    VERILATOR_STEP_AND_EVAL_UNTIL({time} + T_start);")
                 current_time = time
             
@@ -305,10 +301,8 @@ def generate_forever_block_code(events, config):
     # 最后执行STEP到FOREVER_BLOCK_CYCLE
     max_time = config.get('FOREVER_BLOCK_CYCLE', '20')
     if 'current_time' in locals() and current_time != max_time:
-        lines.append(f"    NVBOARD_UPDATE;")
         lines.append(f"    VERILATOR_STEP_AND_EVAL_UNTIL(FOREVER_BLOCK_CYCLE + T_start);")
     else:
-        lines.append(f"    NVBOARD_UPDATE;")
         lines.append(f"    VERILATOR_STEP_AND_EVAL_UNTIL(FOREVER_BLOCK_CYCLE + T_start);")
     
     return lines

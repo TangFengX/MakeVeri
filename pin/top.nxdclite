@@ -9,4 +9,3 @@ sw (SW{7-0})
 btn (BTN{L U C D R})
 
 @0-7 seg@ (SEG[@+0]{A-G}, DEC@P)
-

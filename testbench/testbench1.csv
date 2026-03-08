@@ -7,4 +7,4 @@ INITIAL,Time(ps),Pin,Value,Note,FOREVER,Time(ps),Pin,Value,Note,Configuration,Va
 ,,,,,,,,,,enable INITIAL block,1,
 ,,,,,,,,,,INITIAL block max stimulate time,20,INITIAL block max stimulate time=1
 ,,,,,,,,,,enable FOREVER block,1,
-,,,,,,,,,,FOREVER block cycle,20,FOREVER block cycle=1
+,,,,,,,,,,FOREVER block cycle,10,FOREVER block cycle=1

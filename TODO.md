@@ -1,7 +1,7 @@
 - [ ]优化makefile
     - [ ]更科学的编译流程
     - [ ]使用cmake?
-- [ ]合并Verilator-only分支
+- [x]合并Verilator-only分支
 - [ ]改进testben.csv逻辑
     - [ ]允许采用sim_config或者verilog Testbench进行仿真
     - [ ]添加auto 根据事件自动选择仿真长度

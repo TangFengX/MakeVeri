@@ -14,8 +14,7 @@ CONFIG_MAPPING = {
     'enable INITIAL block': 'ENABLE_INITIAL_BLOCK',
     'INITIAL block max stimulate time': 'INITIAL_BLOCK_MAX_STIMULATE_TIME',
     'enable FOREVER block': 'ENABLE_FOREVER_BLOCK',
-    'FOREVER block cycle': 'FOREVER_BLOCK_CYCLE',
-    'enable wavefrom acquisition':'ENABLE_WAVEFROM_ACQUISITION'
+    'FOREVER block cycle': 'FOREVER_BLOCK_CYCLE'
 }
 
 def parse_testbench_csv(csv_path):

@@ -3,10 +3,26 @@ VERILATOR = verilator
 TIMESTAMP = $(shell date +%Y%m%d_%H%M%S)
 .DEFAULT_GOAL:=all
 
-b?=0
 
+include make.cfg
+SIMULATION_TYPE=$(SIMULATION_WITH_NVBOARD)
 
+ZERO_ONE=0 1
+ifeq ($(filter $(SIMULATION_WITH_NVBOARD),$(ZERO_ONE)),)
+  $(error invalid "SIMULATION_WITH_NVBOARD=$(SIMULATION_WITH_NVBOARD)"。Support: $(ZERO_ONE))
+endif
 
+ifeq ($(filter $(ENABLE_WAVEFROM_ACQUISITION),$(ZERO_ONE)),)
+  $(error invalid "ENABLE_WAVEFROM_ACQUISITION=$(ENABLE_WAVEFROM_ACQUISITION)"。Support: $(ZERO_ONE))
+endif
+
+ifeq ($(ENABLE_WAVEFROM_ACQUISITION),1)
+	D_ENABLE_WAVEFROM_ACQUISITION = -DENABLE_WAVEFROM_ACQUISITION=1
+else
+	D_ENABLE_WAVEFROM_ACQUISITION = -DENABLE_WAVEFROM_ACQUISITION=0
+endif
+
+D_DELAY_WHILE_RUNNING_NVBOARD = -DDELAY_WHILE_RUNNING_NVBOARD=$(DELAY_WHILE_RUNNING_NVBOARD)
 
 
 PWD=$(shell pwd)
@@ -28,7 +44,7 @@ STATE_FILE = $(BUILD)/.last_build_type
 
 
 
-TESTBENCH_FILE=$(TESTBENCH)/testbench$(b).csv
+TESTBENCH_FILE=$(TESTBENCH)/testbench$(SIMULATION_TYPE).csv
 SIM_CONFIG_FILE=$(INCLUDE)/sim_config.h
 TESTBENCH_TOOL=$(TESTBENCH)/csv2c.py
 PIN_BIND_CONFIG_FILE=$(PIN)/top.nxdc
@@ -37,11 +53,12 @@ AUTO_PIN_BIND_SCRIPT = $(NVBOARD_HOME)/scripts/auto_pin_bind.py
 PIN_BIND_CONFIG_CPP_FILE = $(CSRC)/auto_bind.cpp
 NVBOARD_MAKEFILE = $(NVBOARD_HOME)/scripts/nvboard.mk
 EXECUTABLE = $(BIN)/V$(TOPNAME)
+CFG_FILE = $(PWD)/make.cfg
 
 VERILOG_FILES := $(wildcard $(VSRC)/*.v $(VSRC)/*.sv)
 CPP_FILES := $(wildcard $(CSRC)/*.c $(CSRC)/*.cc $(CSRC)/*.cpp)
 
-ifeq ($(b),1)
+ifeq ($(SIMULATION_TYPE),1)
 	INCLUDES = $(INCLUDE) $(OBJ_DIR) $(NVBOARD_HOME)/usr/include
 	include $(NVBOARD_HOME)/scripts/nvboard.mk
 	D_NVBOARD = -DNVBOARD
@@ -52,17 +69,6 @@ else
 	CPP_FILES := $(filter-out $(CSRC)/auto_bind.cpp, $(CPP_FILES))
 endif
 
-all:
-	@mkdir -p $(BUILD)
-	@if [ -f $(STATE_FILE) ]; then \
-		LAST_B=$$(cat $(STATE_FILE) 2>/dev/null || echo ""); \
-		if [ -n "$$LAST_B" ] && [ "$$LAST_B" != "$(b)" ]; then \
-			$(MAKE) cleanall; \
-			mkdir -p $(BUILD);\
-		fi; \
-	fi
-	@echo $(b) > $(STATE_FILE)
-	@$(MAKE) $(EXECUTABLE)
 
 
 
@@ -70,23 +76,15 @@ INCLUDES_FILE :=$(wildcard $(INCLUDE)/*.h)
 
 
 
-
-
-
-
-
-
-
-#硬件配置
 CORES=$(shell nproc)
 
 
-VERILATOR_FLAGS += --trace-fst  --cc --top-module $(TOPNAME) --Mdir $(OBJ_DIR) --exe
+VERILATOR_FLAGS += --trace-fst  --cc --top-module $(TOPNAME) --Mdir $(OBJ_DIR) --exe --timescale $(SIMULATION_TIME_UNIT)/$(SIMULATION_TIME_PRESICION)
+
+CMACROS+=-DWAVEFILE="\\\"$(WAVEFROM_FILE)\\\"" $(D_NVBOARD) $(D_ENABLE_WAVEFROM_ACQUISITION) $(D_DELAY_WHILE_RUNNING_NVBOARD)
 
 
-
-
-CFLAGS+= -DWAVEFILE="\\\"$(WAVEFROM_FILE)\\\"" $(D_NVBOARD) -Wall -O2 $(addprefix -I ,$(INCLUDES))
+CFLAGS+=  $(CMACROS) -Wall -O2 $(addprefix -I ,$(INCLUDES))
 LDFLAGS += $(NVBOARD_ARCHIVE) -lSDL2 -lSDL2_image -lSDL2_ttf -lz
 MAKE_FLAGS+= -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(CFLAGS)"  LDLIBS="$(LDFLAGS)" -j $(CORES)
 
@@ -94,14 +92,14 @@ MAKE_FLAGS+= -f $(OBJ_DIR)/V$(TOPNAME).mk -C $(OBJ_DIR) CXXFLAGS="$(CFLAGS)"  LD
 
 .PHONY: all toc sim clean cleanlib tb bind 
 
-
-$(EXECUTABLE): $(OBJ_DIR)/V$(TOPNAME).mk  $(CPP_FILES) $(INCLUDES_FILE) $(NVBOARD_ARCHIVE)
+all:$(EXECUTABLE)
+$(EXECUTABLE): $(OBJ_DIR)/V$(TOPNAME).mk  $(CPP_FILES) $(INCLUDES_FILE) $(NVBOARD_ARCHIVE) $(CFG_FILE)
 	@mkdir -p $(BIN)
 	@make $(MAKE_FLAGS)
 	@mv $(OBJ_DIR)/V$(TOPNAME) $(BIN)
 
 
-$(OBJ_DIR)/V$(TOPNAME).mk : $(VERILOG_FILES) 
+$(OBJ_DIR)/V$(TOPNAME).mk : $(VERILOG_FILES) $(CFG_FILE)
 	@mkdir -p $(BUILD)
 	@mkdir -p $(OBJ_DIR)
 	@$(VERILATOR) $(VERILATOR_FLAGS) $(VERILOG_FILES) $(CPP_FILES)

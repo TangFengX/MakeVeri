@@ -1,6 +1,8 @@
 #ifndef _SIM_MAIN_H_
 #define _SIM_MAIN_H_
 #include "sim_config.h"
+#include <chrono>
+#include <thread>
 #define VERILATOR_INIT(argc, argv, trace_on) \
     contextp->commandArgs(argc, argv);       \
     Verilated::traceEverOn(trace_on);        \
@@ -10,10 +12,17 @@
 #ifdef NVBOARD
 #define NVBOARD_UPDATE nvboard_update()
 #define NVBOARD_QUIT nvboard_quit()
+#define NVBOARD_DELAY(ms) DELAY(ms)
 #else
 #define NVBOARD_UPDATE
 #define NVBOARD_QUIT
-#endif // DEBUG
+#define NVBOARD_DELAY(ms)
+#endif // NVBOARD
+
+#define DELAY(ms)                           \
+    std::chrono::milliseconds timespan(ms); \
+    std::this_thread::sleep_for(timespan)
+
 #define VERILATOR_TOGGLE_CLK()       \
     do                               \
     {                                \
@@ -25,7 +34,7 @@
 
 #define VERILATOR_EVAL_AND_DUMP()         \
     top->eval();                          \
-    NVBOARD_UPDATE;                     \
+    NVBOARD_UPDATE;                       \
     do                                    \
     {                                     \
         if (!ENABLE_WAVEFROM_ACQUISITION) \
@@ -37,13 +46,14 @@
 
 #define VERILATOR_STEP() \
     T++;                 \
+    NVBOARD_DELAY(DELAY_WHILE_RUNNING_NVBOARD);    \
     contextp->timeInc(1)
 
 #define VERILATOR_FREE() \
     tfp->close();        \
     delete tfp;          \
     delete top;          \
-    delete contextp;    \
+    delete contextp;     \
     NVBOARD_QUIT;
 #if ENABLE_LIMIT_TIME_STIMULATION == 1
 #define VERILATOR_VALID_STIMULATION_RANGE() !contextp->gotFinish() && T < MAX_TIME_SIM

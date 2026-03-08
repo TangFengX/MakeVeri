@@ -19,6 +19,7 @@ module top(
     .btn(btn),
     .sw(sw),
     .ledr(ledr)
+    
 );
 seg my_seg(
     .clk(clk),
@@ -48,7 +49,7 @@ module led(
     if (rst) begin led <= 1; count <= 0; end
     else begin
       if (count == 0) led <= {led[6:0], led[7]};
-      count <= (count >= 5000000 ? 32'b0 : count + 1);
+      count <= (count >= 500 ? 32'b0 : count + 1);
     end
   end
 
@@ -79,7 +80,7 @@ assign segs[5] = 8'b10110110;
 assign segs[6] = 8'b10111110;
 assign segs[7] = 8'b11100000;
 
-parameter CLK_NUM = 5000000;
+parameter CLK_NUM = 500;
 
 reg [31:0] count;
 reg [2:0] offset;

@@ -4,7 +4,7 @@ top=top
 
 ledr (LD{15 14-4 3 2 1 0})
 
-sw (SW{7-0})
+sw (SW{7-1})
 
 btn (BTN{L U C D R})
 

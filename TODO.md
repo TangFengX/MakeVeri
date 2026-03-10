@@ -13,4 +13,6 @@
 - [ ]更加明确的报错
     - [ ]统一的格式
     - [ ]环境检查
-- [] 重写readme
+- [ ] 重写readme
+- [ ] 支持chisel
+- [ ] 将是否使用genbind加入make.cfg

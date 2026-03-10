@@ -3,3 +3,6 @@ wavefrom/*
 bin/*
 .vscode
 .idea
+generate/
+target/
+project/

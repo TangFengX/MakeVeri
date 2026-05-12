@@ -6,3 +6,4 @@ bin/*
 generate/
 target/
 project/
+.metals
